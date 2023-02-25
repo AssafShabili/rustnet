@@ -1,20 +1,17 @@
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{
     get,
-    middleware::Logger,
-    web::{self, Path},
+    web::{Path},
     HttpResponse,
 };
-use reqwest::{Client, Error, Proxy};
 use select::document::Document;
-use select::predicate::{Attr, Class, Name, Text};
-use serde::__private::doc;
+use select::predicate::{Attr, Class, Name};
 
+// url of the fitgirl website. ? should I implement a more secure way in order to avoid a fake websites ? i dunno 
 pub const URL: &str = "https://fitgirl-repacks.site/";
 
 async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
     //println!("{}", format!("{}page/{}/?s={}", URL, page, search_value));
-
     let mut torrents: Vec<Torrent> = Vec::new();
     let html = REQWEST_CLIENT
         .get(format!("{}page/{}/?s={}", URL, page, search_value))
@@ -22,7 +19,6 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
         .await?
         .text()
         .await?;
-
     let document = Document::from_read(html.as_bytes()).unwrap();
 
     //TODO: return error if 'search value' is not right
@@ -64,6 +60,7 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
 
 #[get("/fitgirl/torrents/{search}/{page}")]
 pub async fn get_torrnets(path: Path<(String, usize)>) -> HttpResponse {
+    
     let formatted_search = path.0.replace(" ", "+");
     let torrents = extract_info(&formatted_search, path.1).await.unwrap();
     HttpResponse::Ok()
