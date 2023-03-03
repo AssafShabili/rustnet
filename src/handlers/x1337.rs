@@ -3,7 +3,7 @@ use actix_web::{get, web::Path, HttpResponse};
 use select::predicate::{Attr, Class, Name};
 use select::{document::Document, predicate::Predicate};
 
-// url of the fitgirl website. ? should I implement a more secure way in order to avoid a fake websites ? i dunno
+
 pub const URL: &str = "https://1337xx.to/";
 
 async fn get_magent_link(url: &str) -> Result<String, reqwest::Error> {
