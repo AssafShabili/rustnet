@@ -34,7 +34,7 @@ async fn main() -> io::Result<()> {
             .service(handlers::x1337::get_torrnets)
             .service(handlers::dodi::get_torrnets)
     })
-    .bind("127.0.0.1:7086")?
+    .bind("0.0.0.0:443")?
     .run()
     .await
 }
