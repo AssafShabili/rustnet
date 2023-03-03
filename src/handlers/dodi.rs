@@ -9,6 +9,8 @@ pub const URL: &str = "https://dodi-repacks.download/";
 // url - https://dodi-repacks.download/page/2/?s=gta+
 
 
+// need to find a better way of bypassing dodi 
+
 async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
     let mut torrents: Vec<Torrent> = Vec::new();
     let html = REQWEST_CLIENT
