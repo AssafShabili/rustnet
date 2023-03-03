@@ -32,6 +32,7 @@ async fn main() -> io::Result<()> {
             .service(get_all_torrents)
             .service(handlers::fitgirl::get_torrnets)
             .service(handlers::x1337::get_torrnets)
+            .service(handlers::dodi::get_torrnets)
     })
     .bind("127.0.0.1:7086")?
     .run()
