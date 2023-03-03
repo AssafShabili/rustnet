@@ -1,16 +1,11 @@
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
-<<<<<<< HEAD
 use select::predicate::{Attr, Class, Name};
-=======
-use select::predicate::{Attr, Class, Name,Not};
->>>>>>> c7ceb29609f17702514a708648546c7b23afa88e
 use select::{document::Document, predicate::Predicate};
 
 // url of the fitgirl website. ? should I implement a more secure way in order to avoid a fake websites ? i dunno
 pub const URL: &str = "https://1337xx.to/";
 
-<<<<<<< HEAD
 async fn get_magent_link(url: &str) -> Result<String, reqwest::Error> {
     let html = REQWEST_CLIENT.get(url).send().await?.text().await?;
     let document = Document::from_read(html.as_bytes()).unwrap();
@@ -20,8 +15,6 @@ async fn get_magent_link(url: &str) -> Result<String, reqwest::Error> {
     Ok(String::from(magnet))
 }
 
-=======
->>>>>>> c7ceb29609f17702514a708648546c7b23afa88e
 async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
     let mut torrents: Vec<Torrent> = Vec::new();
     let html = REQWEST_CLIENT
@@ -30,16 +23,10 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
         .await?
         .text()
         .await?;
-<<<<<<< HEAD
-=======
-
-    //println!("{:?}",html);
->>>>>>> c7ceb29609f17702514a708648546c7b23afa88e
     let document = Document::from_read(html.as_bytes()).unwrap();
 
     //TODO: return error if 'search value' is not right
 
-<<<<<<< HEAD
     let trs_iter = document.find(Name("tr")).enumerate().skip(1);
 
     for (_, tr) in trs_iter {
@@ -91,20 +78,6 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
             manget_link,
         );
         torrents.push(t);
-=======
-    let tr = document
-        .find(Name("tr"))
-        .enumerate();
-
-    for (_,td) in tr {
-        //println!("{:#?}",td.1.html());
-        let name = td.find(Name("td").and(Attr("class","coll-1 name"))).enumerate();
-
-        for f in name {
-            println!("{:?}",f.1);
-        }
-
->>>>>>> c7ceb29609f17702514a708648546c7b23afa88e
     }
 
     let ts = Torrents {
