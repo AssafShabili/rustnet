@@ -74,6 +74,9 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
         } else {
             torrent.set_url(format!("https://rargb.to{}", uri));
         }
+
+        
+
         // adding the finished torrent struct to the vector.
         torrents.push(torrent);
     }
