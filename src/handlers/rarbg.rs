@@ -1,5 +1,5 @@
 use crate::response::Response;
-use crate::torrent::{Torrent, Torrents,REQWEST_CLIENT};
+use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{
     get,
     middleware::Logger,
@@ -14,70 +14,70 @@ use hyper_rustls::HttpsConnector;
 
 use native_tls::TlsConnector;
 use select::document::Document;
-use select::predicate::{Class, Name, Predicate};
+use select::predicate::{And, Attr, Child, Class, Name, Predicate, Text};
 
 use reqwest::{Client, Error, Proxy};
-pub const URL: &str = "https://rargb.to/search/";
+pub const URL: &str = "https://rargb.to/";
 
-
-
-async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
+async fn extract_info(
+    search_value: &str,
+    page: usize,
+) -> Result<Torrents, Box<dyn std::error::Error>> {
     let html = REQWEST_CLIENT
-        .get(
-            format!("{}{}//?search={}", URL, page, search_value)
-        )
+        .get(format!("{}search/{}//?search={}", URL, page, search_value))
         .send()
         .await?
         .text()
         .await?;
+
     let document = Document::from_read(html.as_bytes()).unwrap();
-    let table = document.find(Class("lista2t")).next().unwrap();
+
+    let tr_list = document.find(Class("lista2")).enumerate();
 
     let mut torrents: Vec<Torrent> = Vec::new();
 
-    //TODO: maybe needs to refactor this, this is not the best
-    for node in table.find(Class("lista2")) {
-        //td == line in the table
-        let mut td = node.find(Name("td")).take(8);
-
+    for (_, node) in tr_list {
         let mut torrent = Torrent::default();
 
-        td.next(); //<kirby falling into the void meme here>
+        let name_td = node
+            .find(Attr("align", "left").child(Attr("title", ())))
+            .next()
+            .unwrap();
+        let torrnet_url = format!("{}{}", URL, name_td.attr("href").unwrap());
+        torrent.set_name(format!("{}", name_td.attr("title").unwrap()));
+        torrent.set_url(torrnet_url);
 
-        let name_td = td.next().unwrap();
-        // adding a comments
-        torrent.set_name(String::from(name_td.text().trim()));
-        torrent.set_category(String::from(td.next().unwrap().text().trim()));
-        torrent.set_date_uploaded(String::from(td.next().unwrap().text().trim()));
-        torrent.set_size(String::from(td.next().unwrap().text().trim()));
-        torrent.set_seeders(
-            String::from(td.next().unwrap().text().trim())
-                .parse()
-                .unwrap(),
-        );
-        torrent.set_leechers(
-            String::from(td.next().unwrap().text().trim())
-                .parse()
-                .unwrap(),
-        );
-        torrent.set_uploaded_by(String::from(td.next().unwrap().text().trim()));
+        let td_vec = node
+            .find(Name("td").and(Attr("align", "center")))
+            .collect::<Vec<_>>();
 
-        let uri = name_td
-            .find(Name("a"))
+        let category: String = td_vec[0].children().map(|a_child| a_child.text()).collect();
+        torrent.set_category(category);
+        torrent.set_date_uploaded(td_vec[1].text());
+        torrent.set_size(td_vec[2].text());
+        torrent.set_seeders(td_vec[3].first_child().unwrap().text().parse().unwrap());
+        torrent.set_leechers(td_vec[4].text().parse().unwrap());
+        torrent.set_uploaded_by(td_vec[5].text());
+
+        let html = REQWEST_CLIENT
+            .get(&torrent.url)
+            .send()
+            .await?
+            .text()
+            .await?;
+        let document_magnet = Document::from_read(html.as_bytes()).unwrap();
+        let magnet_url = document_magnet
+            .find(Name("a").and(Attr("href", ())))
+            .filter(|a| match a.attr("href") {
+                Some(x) => x.contains("magnet:?"),
+                None => false,
+            })
             .next()
             .unwrap()
             .attr("href")
-            .unwrap_or_else(|| "");
+            .unwrap();
+        torrent.set_magnet_link(String::from(magnet_url));
 
-        if uri == "" {
-            torrent.set_url(String::from("[Error] - couldn't find the torrent url."))
-        } else {
-            torrent.set_url(format!("https://rargb.to{}", uri));
-        }
-
-        
-
-        // adding the finished torrent struct to the vector.
         torrents.push(torrent);
     }
     let ts = Torrents {
@@ -88,7 +88,6 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
 
 #[get("/rarbg/torrents/{search}/{page}")]
 pub async fn get_torrnets(path: Path<(String, usize)>) -> HttpResponse {
-    
     let torrents = extract_info(&path.0, path.1).await.unwrap();
     HttpResponse::Ok()
         .content_type("application/json")
