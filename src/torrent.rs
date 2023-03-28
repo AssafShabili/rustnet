@@ -16,7 +16,7 @@ lazy_static! {
 
 
 pub type Torrents = Response<Vec<Torrent>>;
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug,Clone, Deserialize, Serialize, Default)]
 pub struct Torrent {
     pub name: String,
     pub category: String,

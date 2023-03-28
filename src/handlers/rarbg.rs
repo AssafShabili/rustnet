@@ -9,7 +9,8 @@ use actix_web::{
     HttpResponse,
 };
 use env_logger::Env;
-
+use futures::{stream, StreamExt};
+use futures::future::join_all;
 use reqwest::blocking;
 
 use select::document::Document;
@@ -58,28 +59,44 @@ async fn extract_info(
         torrent.set_seeders(td_vec[3].first_child().unwrap().text().parse().unwrap());
         torrent.set_leechers(td_vec[4].text().parse().unwrap());
         torrent.set_uploaded_by(td_vec[5].text());
-
-        let html = REQWEST_CLIENT
-            .get(&torrent.url)
-            .send()
-            .await?
-            .text()
-            .await?;
-        let document_magnet = Document::from_read(html.as_bytes()).unwrap();
-        let magnet_url = document_magnet
-            .find(Name("a").and(Attr("href", ())))
-            .filter(|a| match a.attr("href") {
-                Some(x) => x.contains("magnet:?"),
-                None => false,
-            })
-            .next()
-            .unwrap()
-            .attr("href")
-            .unwrap();
-        torrent.set_magnet_link(String::from(magnet_url));
-
         torrents.push(torrent);
     }
+
+
+
+    let test = join_all(torrents.clone().into_iter().map(|mut torrent| {
+        async move {
+            let resp = REQWEST_CLIENT.get(&torrent.url).send().await.unwrap().text().await;
+                    match resp {
+                        Ok(resp) => {
+                            let document_magnet = Document::from_read(resp.as_bytes()).unwrap();
+                            let magnet_url = document_magnet
+                                .find(Name("a").and(Attr("href", ())))
+                                .filter(|a| match a.attr("href") {
+                                    Some(x) => x.contains("magnet:?"),
+                                    None => false,
+                                })
+                                .next()
+                                .unwrap()
+                                .attr("href")
+                                .unwrap();
+                            String::from(magnet_url)
+                            //torrent.set_magnet_link(String::from(magnet_url));
+                        },
+                        Err(e) => {
+                            //torrent.set_magnet_link(String::from("Couldn't get the magnet"));
+                            String::from("Couldn't get the magnet")
+                        }
+                    }
+        }
+    })).await;
+
+
+    for i in 0..torrents.len(){
+        torrents[i].set_magnet_link(test[i].to_string());
+    }
+
+   
 
     let ts = Torrents {
         results: vec![torrents],
