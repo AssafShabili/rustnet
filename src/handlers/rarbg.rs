@@ -1,3 +1,5 @@
+use std::thread;
+
 use crate::response::Response;
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{
@@ -59,8 +61,33 @@ async fn extract_info(
         torrent.set_leechers(td_vec[4].text().parse().unwrap());
         torrent.set_uploaded_by(td_vec[5].text());
 
+        // let html = REQWEST_CLIENT
+        //     .get(&torrent.url)
+        //     .send()
+        //     .await?
+        //     .text()
+        //     .await?;
+        // let document_magnet = Document::from_read(html.as_bytes()).unwrap();
+        // let magnet_url = document_magnet
+        //     .find(Name("a").and(Attr("href", ())))
+        //     .filter(|a| match a.attr("href") {
+        //         Some(x) => x.contains("magnet:?"),
+        //         None => false,
+        //     })
+        //     .next()
+        //     .unwrap()
+        //     .attr("href")
+        //     .unwrap();
+        // torrent.set_magnet_link(String::from(magnet_url));
+
+        torrents.push(torrent);
+    }
+
+    for item in &mut torrents {
+        
+        tokio::task::spawn(async { 
         let html = REQWEST_CLIENT
-            .get(&torrent.url)
+            .get(&item.url)
             .send()
             .await?
             .text()
@@ -76,10 +103,17 @@ async fn extract_info(
             .unwrap()
             .attr("href")
             .unwrap();
-        torrent.set_magnet_link(String::from(magnet_url));
+            //item.set_magnet_link(String::from("HI"));
+            Ok::<(), reqwest::Error>(())
 
-        torrents.push(torrent);
+        });
+
+        
+       
+
+        //item.set_magnet_link(String::from("HI"));
     }
+
     let ts = Torrents {
         results: vec![torrents],
     };
