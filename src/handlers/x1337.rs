@@ -1,19 +1,20 @@
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
 use select::predicate::{Attr, Class, Name};
+use futures::future::join_all;
 use select::{document::Document, predicate::Predicate};
 
 
 pub const URL: &str = "https://1337xx.to/";
 
-async fn get_magent_link(url: &str) -> Result<String, reqwest::Error> {
-    let html = REQWEST_CLIENT.get(url).send().await?.text().await?;
-    let document = Document::from_read(html.as_bytes()).unwrap();
-    let magnet = document.find(
-        Attr("class","l3426749b3b895e9356348e295596e5f2634c98d8 l0d669aa8b23687a65b2981747a14a1be1174ba2c la1038a02a9e0ee51f6e4be8730ec3edea40279a2 torrentdown2")
-    ).next().unwrap().attr("href").unwrap();
-    Ok(String::from(magnet))
-}
+// async fn get_magent_link(url: &str) -> Result<String, reqwest::Error> {
+//     let html = REQWEST_CLIENT.get(url).send().await?.text().await?;
+//     let document = Document::from_read(html.as_bytes()).unwrap();
+//     let magnet = document.find(
+//         Attr("class","l3426749b3b895e9356348e295596e5f2634c98d8 l0d669aa8b23687a65b2981747a14a1be1174ba2c la1038a02a9e0ee51f6e4be8730ec3edea40279a2 torrentdown2")
+//     ).next().unwrap().attr("href").unwrap();
+//     Ok(String::from(magnet))
+// }
 
 async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
     let mut torrents: Vec<Torrent> = Vec::new();
@@ -64,7 +65,7 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
             .unwrap()
             .text();
 
-        let manget_link = get_magent_link(&x1337_url_torrent).await?;
+        //let manget_link = get_magent_link(&x1337_url_torrent).await?;
 
         let t = Torrent::new(
             torrent_name,
@@ -75,10 +76,34 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
             leechers,
             uploaded_by,
             x1337_url_torrent,
-            manget_link,
+            "".to_string(),
         );
         torrents.push(t);
     }
+
+
+    let magnet_vec: Vec<String> = join_all(torrents.clone().into_iter().map(|torrent| {
+        async move {
+            let resp = REQWEST_CLIENT.get(&torrent.url).send().await.unwrap().text().await;
+                    match resp {
+                        Ok(resp) => {
+                            let document = Document::from_read(resp.as_bytes()).unwrap();
+                            let magnet = document.find(
+                                Attr("class","l3426749b3b895e9356348e295596e5f2634c98d8 l0d669aa8b23687a65b2981747a14a1be1174ba2c la1038a02a9e0ee51f6e4be8730ec3edea40279a2 torrentdown2")
+                            ).next().unwrap().attr("href").unwrap();
+                            String::from(magnet)
+                        },
+                        Err(e) => {
+                            //torrent.set_magnet_link(String::from("Couldn't get the magnet"));
+                            String::from("Couldn't get the magnet")
+                        }
+                    }
+        }
+    })).await;
+    for i in 0..torrents.len(){
+        torrents[i].set_magnet_link(magnet_vec[i].to_string());
+    }
+
 
     let ts = Torrents {
         results: vec![torrents],

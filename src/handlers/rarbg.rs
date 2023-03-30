@@ -90,13 +90,9 @@ async fn extract_info(
                     }
         }
     })).await;
-
-
     for i in 0..torrents.len(){
         torrents[i].set_magnet_link(test[i].to_string());
     }
-
-   
 
     let ts = Torrents {
         results: vec![torrents],
