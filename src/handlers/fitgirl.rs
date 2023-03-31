@@ -1,6 +1,7 @@
 use super::get_request;
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
+use futures::future::join_all;
 use select::predicate::{Attr, Class, Name};
 use select::{document::Document, predicate::Predicate};
 
@@ -20,52 +21,71 @@ async fn extract_info(
     for link in links.step_by(2) {
         let mut torrent = Torrent::default();
         let search_link = link.1.attr("href").unwrap();
-        
-        let search_value_html = REQWEST_CLIENT.get(search_link).send().await?.text().await?;
-        let search_document = Document::from_read(search_value_html.as_bytes()).unwrap();
-        let name = search_document.find(Class("entry-title")).next().unwrap();
-
-        
-        torrent.set_name(String::from(name.text().trim()));
-        torrent.set_category(String::from("Games"));
-
-        let date = search_document.find(Class("entry-date")).next().unwrap();
-        torrent.set_date_uploaded(String::from(date.text().trim()));
-
-        let size = search_document
-            .find(Attr("style", "height: 200px; display: block;").child(Name("strong")))
-            .nth(4);
-        match size {
-            Some(s) => {
-                // we found a size;
-                torrent.set_size(s.text());
-            }
-            None => {
-                torrent.set_size(String::from(
-                    "[Error] - couldn't extract the search size ...",
-                ));
-            }
-        }
-
-        let magnet = search_document.find(Name("a")).find(
-            //very very bad. but we need to find the <a> tag that contain the magnet like.
-            |&x| x.attr("href").unwrap().contains("magnet:?"),
-        );
-        match magnet {
-            Some(m) => {
-                torrent.set_magnet_link(String::from(m.attr("href").unwrap().trim()));
-            }
-            None => {
-                torrent.set_magnet_link(String::from(""));
-            }
-        }
-
         torrent.set_uploaded_by(String::from("FITGIRL"));
         torrent.set_url(String::from(search_link));
         torrents.push(torrent);
     }
+
+    let torrents_vec: Vec<Torrent> = join_all(torrents.clone().into_iter().map(|mut torrent| {
+        async move {
+            let resp = REQWEST_CLIENT
+                .get(&torrent.url)
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await;
+
+            match resp {
+                Ok(resp) => {
+                    let search_document = Document::from_read(resp.as_bytes()).unwrap();
+                    let name = search_document.find(Class("entry-title")).next().unwrap();
+
+                    torrent.set_name(String::from(name.text().trim()));
+                    torrent.set_category(String::from("Games"));
+
+                    let date = search_document.find(Class("entry-date")).next().unwrap();
+                    torrent.set_date_uploaded(String::from(date.text().trim()));
+
+                    let size = search_document
+                        .find(Attr("style", "height: 200px; display: block;").child(Name("strong")))
+                        .nth(4);
+                    match size {
+                        Some(s) => {
+                            // we found a size;
+                            torrent.set_size(s.text());
+                        }
+                        None => {
+                            torrent.set_size(String::from(
+                                "[Error] - couldn't extract the search size ...",
+                            ));
+                        }
+                    }
+
+                    let magnet = search_document.find(Name("a")).find(
+                        //very very bad. but we need to find the <a> tag that contain the magnet like.
+                        |&x| x.attr("href").unwrap().contains("magnet:?"),
+                    );
+                    match magnet {
+                        Some(m) => {
+                            torrent.set_magnet_link(String::from(m.attr("href").unwrap().trim()));
+                        }
+                        None => {
+                            torrent.set_magnet_link(String::from(""));
+                        }
+                    }
+
+                    torrent.set_uploaded_by(String::from("FITGIRL"));
+                    return torrent
+                }
+                Err(e) => Torrent::default(),
+            }
+        }
+    }))
+    .await;
+
     let ts = Torrents {
-        results: vec![torrents],
+        results: vec![torrents_vec],
     };
     Ok(ts)
 }
