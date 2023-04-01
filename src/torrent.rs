@@ -1,4 +1,4 @@
-use crate::response::Response;
+use crate::{response::Response, proxys::Proxys};
 use serde::{Deserialize, Serialize};
 use reqwest::{Client, Error, Proxy};
 

@@ -3,6 +3,8 @@ extern crate lazy_static;
 pub mod handlers;
 mod response;
 mod torrent;
+mod proxys;
+use proxys::Proxys;
 use handlers::rarbg::{get_torrnets,get_all_torrents};
 use actix_web::{get, post, put, delete, web, App, HttpRequest, HttpResponse, HttpServer, Responder, ResponseError, middleware};
 use actix_web::http::header::ContentType;
@@ -20,8 +22,11 @@ use std::{env, io};
 
 
 #[actix_rt::main]
-async fn main() -> io::Result<()> {
-    println!("");
+async fn main() -> io::Result<()> {   
+    // let proxys = Proxys::new().await.unwrap();
+    // for p in proxys.data {
+    //     println!("{:?}",p);
+    // }
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init();
     HttpServer::new(|| {

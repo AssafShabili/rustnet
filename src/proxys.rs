@@ -1,7 +1,7 @@
 use crate::{response, torrent::REQWEST_CLIENT};
 use serde::{Deserialize, Serialize};
 
-const API_URL:&str = "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=responseTime&sort_type=desc&filterUpTime=90&country=DE&speed=fast";
+const API_URL:&str = "https://proxylist.geonode.com/api/proxy-list?limit=10&page=1&sort_by=responseTime&sort_type=desc&filterUpTime=90&country=DE&speed=fast&protocols=http%2Csocks5";
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -26,11 +26,9 @@ pub struct Proxy {
 
 
 impl Proxys {
-    pub fn new() -> Result<Proxys, Box<dyn std::error::Error>> {
-        let response = REQWEST_CLIENT.get(API_URL).send();
-        let fut = futures::executor::block_on(response).unwrap().text();
-        let json_string = futures::executor::block_on(fut).unwrap();
-        let proxys: Proxys = serde_json::from_str(&json_string)?;
+    pub async fn new() -> Result<Proxys, Box<dyn std::error::Error>> {
+        let response = REQWEST_CLIENT.get(API_URL).send().await?.text().await?;
+        let proxys: Proxys = serde_json::from_str(&response)?;
         Ok(proxys)
     }
 }
