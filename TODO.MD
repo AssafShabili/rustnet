@@ -3,6 +3,8 @@ https://proxylist.geonode.com/api/proxy-list?limit=15&page=1&sort_by=speed&sort_
  ^ needs to edit this to sort by respone time and uptime.
 
 # RustNet TODO.md
+note to self, you are mega dumb and a retard you set the reqwest proxy to use the reqwest::Proxy::http <-- and not to use https :)
+next time dont be so dumb :)
 
 ### Todo
 
@@ -14,7 +16,7 @@ https://proxylist.geonode.com/api/proxy-list?limit=15&page=1&sort_by=speed&sort_
 
 ### In Progress
 
-- [ ] Work on Github Repo [JIRA-345]  
+- [ ]   
 
 ### Done ✓
 

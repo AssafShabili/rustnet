@@ -26,8 +26,9 @@ pub struct Proxy {
 
 
 impl Proxys {
-    pub async fn new() -> Result<Proxys, Box<dyn std::error::Error>> {
-        let response = REQWEST_CLIENT.get(API_URL).send().await?.text().await?;
+    pub fn new() -> Result<Proxys, Box<dyn std::error::Error>> {
+        let client = reqwest::blocking::Client::new();
+        let response = client.get(API_URL).send()?.text()?;
         let proxys: Proxys = serde_json::from_str(&response)?;
         Ok(proxys)
     }
