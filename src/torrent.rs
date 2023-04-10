@@ -15,7 +15,7 @@ lazy_static! {
     // };
 
     pub static ref REQWEST_CLIENT: Client = {
-        let proxy = Proxy::http("socks5://138.201.92.34:1080").unwrap();
+        let proxy = Proxy::http("http://195.154.67.61:3128").unwrap();
         let client = Client::builder()
                     .proxy(proxy)
                     .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36")

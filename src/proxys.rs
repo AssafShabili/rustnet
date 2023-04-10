@@ -1,4 +1,6 @@
 use crate::{response, torrent::REQWEST_CLIENT};
+
+
 use serde::{Deserialize, Serialize};
 
 const API_URL:&str = "https://proxylist.geonode.com/api/proxy-list?limit=10&page=1&sort_by=responseTime&sort_type=desc&filterUpTime=90&country=DE&speed=fast&protocols=http%2Csocks5";
