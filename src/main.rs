@@ -19,7 +19,7 @@ async fn main() -> io::Result<()> {
             .service(rustnet::handlers::x1337::get_torrnets)
             .service(rustnet::handlers::dodi::get_torrnets)
     })
-    .bind("127.0.0.1:8088")?
+    .bind("0.0.0.0:443")?
     .run()
     .await
 }
