@@ -2,6 +2,7 @@ pub mod rarbg;
 pub mod dodi;
 pub mod fitgirl;
 pub mod x1337;
+pub mod galaxy;
 
 use crate::torrent::{Torrent, Torrents};
 use actix_web::{HttpResponse, web::Path};
