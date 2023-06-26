@@ -13,6 +13,7 @@ derivative   = "2.2.0"
 serde_json   = "1.0.87"
 actix-rt     = "2.7.0"
 env_logger   = "0.10.0"
+async-trait = "0.1.68"
 lazy_static = "1.4.0"
 futures = "0.3.27"
 tokio = { version = "1.26.0", features = ["rt", "net"] }
