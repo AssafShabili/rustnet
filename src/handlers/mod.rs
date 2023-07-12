@@ -12,23 +12,21 @@ use async_trait::async_trait;
 /// Generic struct to represent all of the torrents Handlers
 pub struct TorrentHandler<'a> {
     pub search_value: &'a str,
-    pub page: usize,
 }
 
 
 /// Generic trait to represent the extract_info function
 #[async_trait]
-trait ExtractInfo {
+pub trait ExtractInfo {
     async fn extract_info(
-        search_value: &str,
-        page: usize,
+       &self
     ) -> Result<Torrents, Box<dyn std::error::Error>>;
 }
 
 
 #[async_trait]
-trait GetTorrents {
-    async fn get_torrnets(path: Path<(String, usize)>) -> HttpResponse;
+pub trait GetTorrents {
+    async fn get_torrnets(&self,path: Path<(String, usize)>) -> HttpResponse;
 }
 
 

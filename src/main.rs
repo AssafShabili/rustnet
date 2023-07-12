@@ -18,6 +18,7 @@ async fn main() -> io::Result<()> {
             .service(rustnet::handlers::fitgirl::get_torrnets)
             .service(rustnet::handlers::x1337::get_torrnets)
             .service(rustnet::handlers::dodi::get_torrnets)
+            .service(rustnet::handlers::galaxy::get_torrnets)
     })
     .bind("0.0.0.0:443")?
     .run()
