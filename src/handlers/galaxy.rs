@@ -1,12 +1,12 @@
-use crate::handlers::{ExtractInfo, GetTorrents, TorrentHandler};
+use crate::handlers::{ExtractInfo};
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
 use async_trait::async_trait;
-use futures::future::join_all;
-use select::predicate::{Attr, Class, Name};
+
+use select::predicate::{Attr, Name};
 use select::{document::Document, predicate::Predicate};
 use std::borrow::Cow;
-use std::convert::TryInto;
+
 
 struct TorrentGalaxy<'a> {
     search: &'a str,

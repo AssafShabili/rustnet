@@ -1,7 +1,7 @@
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
-use select::predicate::{Attr, Class, Name};
-use select::{document::Document, predicate::Predicate};
+
+use select::{document::Document};
 
 // url of the fitgirl website. ? should I implement a more secure way in order to avoid a fake websites ? i dunno
 pub const URL: &str = "https://dodi-repacks.download/";
@@ -12,7 +12,7 @@ pub const URL: &str = "https://dodi-repacks.download/";
 // need to find a better way of bypassing dodi 
 
 async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwest::Error> {
-    let mut torrents: Vec<Torrent> = Vec::new();
+    let torrents: Vec<Torrent> = Vec::new();
     let html = REQWEST_CLIENT
         .get(format!("{}page/{}/?s={}", URL,page,search_value))
         .send()
@@ -22,7 +22,7 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
 
     println!("{:?}",html);
 
-    let document = Document::from_read(html.as_bytes()).unwrap();
+    let _document = Document::from_read(html.as_bytes()).unwrap();
     let ts = Torrents {
         results: vec![torrents],
     };

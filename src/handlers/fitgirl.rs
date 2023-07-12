@@ -78,7 +78,7 @@ async fn extract_info(
                     torrent.set_uploaded_by(String::from("FITGIRL"));
                     return torrent
                 }
-                Err(e) => Torrent::default(),
+                Err(_e) => Torrent::default(),
             }
         }
     }))

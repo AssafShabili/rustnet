@@ -1,6 +1,6 @@
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{get, web::Path, HttpResponse};
-use select::predicate::{Attr, Class, Name};
+use select::predicate::{Attr, Name};
 use futures::future::join_all;
 use select::{document::Document, predicate::Predicate};
 
@@ -93,7 +93,7 @@ async fn extract_info(search_value: &str, page: usize) -> Result<Torrents, reqwe
                             ).next().unwrap().attr("href").unwrap();
                             String::from(magnet)
                         },
-                        Err(e) => {
+                        Err(_e) => {
                             //torrent.set_magnet_link(String::from("Couldn't get the magnet"));
                             String::from("Couldn't get the magnet")
                         }

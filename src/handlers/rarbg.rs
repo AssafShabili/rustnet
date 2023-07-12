@@ -1,22 +1,21 @@
-use std::thread;
 
-use crate::response::Response;
+
+
 use crate::torrent::{Torrent, Torrents, REQWEST_CLIENT};
 use actix_web::{
     get,
-    middleware::Logger,
-    web::{self, Path},
+    web::{Path},
     HttpResponse,
 };
-use env_logger::Env;
-use futures::{stream, StreamExt};
+
+use futures::{StreamExt};
 use futures::future::join_all;
-use reqwest::blocking;
+
 
 use select::document::Document;
-use select::predicate::{And, Attr, Child, Class, Name, Predicate, Text};
+use select::predicate::{Attr, Class, Name, Predicate};
 
-use reqwest::{Client, Error, Proxy};
+
 pub const URL: &str = "https://rargb.to/";
 
 async fn extract_info(
@@ -64,7 +63,7 @@ async fn extract_info(
 
 
 
-    let test = join_all(torrents.clone().into_iter().map(|mut torrent| {
+    let test = join_all(torrents.clone().into_iter().map(|torrent| {
         async move {
             let resp = REQWEST_CLIENT.get(&torrent.url).send().await.unwrap().text().await;
                     match resp {
@@ -83,7 +82,7 @@ async fn extract_info(
                             String::from(magnet_url)
                             //torrent.set_magnet_link(String::from(magnet_url));
                         },
-                        Err(e) => {
+                        Err(_e) => {
                             //torrent.set_magnet_link(String::from("Couldn't get the magnet"));
                             String::from("Couldn't get the magnet")
                         }

@@ -4,7 +4,7 @@ pub mod fitgirl;
 pub mod x1337;
 pub mod galaxy;
 
-use crate::torrent::{Torrent, Torrents};
+use crate::torrent::{Torrents};
 use actix_web::{HttpResponse, web::Path};
 use async_trait::async_trait;
 
@@ -53,13 +53,13 @@ pub enum TorrnetError{
 }
 
 impl From<reqwest::Error> for TorrnetError {
-    fn from(value: reqwest::Error) -> Self {
+    fn from(_value: reqwest::Error) -> Self {
         TorrnetError::reqwestError
     }
 }
 
 impl From<std::io::Error> for TorrnetError {
-    fn from(value: std::io::Error) -> Self {
+    fn from(_value: std::io::Error) -> Self {
         TorrnetError::selectError
     }
 }

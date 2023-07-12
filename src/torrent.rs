@@ -1,6 +1,6 @@
-use crate::{response::Response, proxys::Proxys};
+use crate::{response::Response};
 use serde::{Deserialize, Serialize};
-use reqwest::{Client, Error, Proxy};
+use reqwest::{Client, Proxy};
 
 lazy_static! {
     // pub static ref REQWEST_CLIENT_PROXYS:Client = {
