@@ -106,8 +106,8 @@ impl<'a> ExtractInfo for TorrentGalaxy<'a> {
                 seeders,
                 leechers,
                 uploaded_by,
-                magnet_link.to_string(),
                 url,
+                magnet_link.to_string(),
             );
 
             torrents.push(torrnet)
